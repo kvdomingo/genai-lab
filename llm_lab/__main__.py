@@ -1,4 +1,6 @@
+import asyncio
 import sys
+from argparse import ArgumentParser
 
 import ollama
 from colorama import Fore, Style
@@ -69,20 +71,16 @@ async def main(args: CliArguments):
             sys.exit(1)
 
 
-if __name__ == "__main__":
-    import asyncio
-    from argparse import ArgumentParser
+parser = ArgumentParser(
+    description="Run an AI chat bot in the terminal connecting to a locally hosted Ollama server."
+)
+parser.add_argument(
+    "-m",
+    "--model",
+    default=settings.DEFAULT_MODEL_NAME,
+    help="Ollama model name",
+    type=str,
+)
+parsed = parser.parse_args()
 
-    parser = ArgumentParser(
-        description="Run an AI chat bot in the terminal connecting to a locally hosted Ollama server."
-    )
-    parser.add_argument(
-        "-m",
-        "--model",
-        default=settings.DEFAULT_MODEL_NAME,
-        help="Ollama model name",
-        type=str,
-    )
-    args = parser.parse_args()
-
-    asyncio.run(main(CliArguments.model_validate(args)))
+asyncio.run(main(CliArguments.model_validate(parsed)))
