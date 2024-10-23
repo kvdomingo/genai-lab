@@ -7,11 +7,8 @@ services:
           devices:
             - driver: nvidia
               count: all
-              capabilities: [gpu]
+              capabilities: [ gpu ]
     volumes:
-      - ollama:/root/.ollama
+      - ${HOME}/.ollama:/root/.ollama
     ports:
       - '11434:11434'
-
-volumes:
-  ollama:
