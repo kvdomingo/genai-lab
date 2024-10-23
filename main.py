@@ -1,54 +1,53 @@
+import sys
+
 import ollama
 from colorama import Fore, Style
 from loguru import logger
 from tqdm import tqdm
 
-OLLAMA_URL = "http://localhost:11434"
-
-MODEL_NAME = "llama3.2:1b"
-
-BREAK_WORD = "bye"
-
-BASE_PROMPT = """
-You are a friendly, helpful, general-purpose AI assistant. You answer any questions directly and concisely,
-and you do not include extra information unless asked.
-"""
+from llm_lab.schemas import CliArguments
+from llm_lab.settings import settings
 
 
-async def main():
+async def main(args: CliArguments):
     messages = [
         {
             "role": "system",
-            "content": BASE_PROMPT,
+            "content": settings.BASE_PROMPT,
         }
     ]
 
-    client = ollama.AsyncClient(OLLAMA_URL)
-    logger.info(f"Pulling model {MODEL_NAME}...")
-    stream = await client.pull(MODEL_NAME, stream=True)
+    client = ollama.AsyncClient(str(settings.OLLAMA_URL))
+    logger.info(f"Pulling model {args.model}...")
 
-    with tqdm(total=0) as pbar:
-        async for chunk in stream:
-            if "completed" in chunk.keys() and "total" in chunk.keys():
-                pbar.total = chunk["total"]
-                pbar.update(chunk["completed"])
-            else:
-                logger.info(chunk)
+    try:
+        stream = await client.pull(args.model, stream=True)
 
-    logger.success(f"Model {MODEL_NAME} pulled")
+        with tqdm(total=0) as pbar:
+            async for chunk in stream:
+                if "completed" in chunk.keys() and "total" in chunk.keys():
+                    pbar.total = chunk["total"]
+                    pbar.update(chunk["completed"])
+                else:
+                    logger.info(chunk)
+    except ollama.ResponseError as e:
+        logger.error(f"An error occurred while pulling the model: {e}")
+        sys.exit(1)
+    else:
+        logger.success(f"Model {args.model} pulled")
 
     while True:
         user_input = input("\n\n" + Fore.GREEN + "You: " + Style.RESET_ALL)
 
-        if user_input.lower() == BREAK_WORD:
-            logger.info("\n" + user_input)
+        if user_input.lower() == settings.BREAK_WORD:
+            logger.info(user_input)
             break
 
         messages.append({"role": "user", "content": user_input})
 
         try:
             stream = await client.chat(
-                model=MODEL_NAME,
+                model=args.model,
                 messages=messages,
                 stream=True,
             )
@@ -67,9 +66,23 @@ async def main():
             )
         except Exception as e:
             logger.error(f"An unexpected error occurred.\n\nError:\n{e}")
+            sys.exit(1)
 
 
 if __name__ == "__main__":
     import asyncio
+    from argparse import ArgumentParser
 
-    asyncio.run(main())
+    parser = ArgumentParser(
+        description="Run an AI chat bot in the terminal connecting to a locally hosted Ollama server."
+    )
+    parser.add_argument(
+        "-m",
+        "--model",
+        default=settings.DEFAULT_MODEL_NAME,
+        help="Ollama model name",
+        type=str,
+    )
+    args = parser.parse_args()
+
+    asyncio.run(main(CliArguments.model_validate(args)))

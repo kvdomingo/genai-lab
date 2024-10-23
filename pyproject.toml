@@ -12,6 +12,8 @@ ollama = "^0.3.3"
 loguru = "^0.7.2"
 tqdm = "^4.66.5"
 colorama = "^0.4.6"
+pydantic = "^2.9.2"
+pydantic-settings = "^2.6.0"
 
 [tool.poetry.group.dev.dependencies]
 ruff = "^0.7.0"
