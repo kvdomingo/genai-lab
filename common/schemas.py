@@ -1,6 +1,6 @@
 from pydantic import BaseModel, ConfigDict, Field
 
-from llm_lab.settings import settings
+from common.settings import settings
 
 
 class CliArguments(BaseModel):
