@@ -21,3 +21,10 @@ task
 # Run the chatbot
 python -m llm_lab
 ```
+
+The chatbot uses the  `llama3.2` (3B) model by default. To change the model, get the model name from
+the Ollama [models](https://ollama.com/library) list and pass it to the `-m`/`--model` argument.
+
+```shell
+python -m llm_lab -- --model gemma2
+```

@@ -7,6 +7,7 @@ from colorama import Fore, Style
 from loguru import logger
 from tqdm import tqdm
 
+from llm_lab.internal.similarity import return_response
 from llm_lab.schemas import CliArguments
 from llm_lab.settings import settings
 
@@ -45,7 +46,15 @@ async def main(args: CliArguments):
             logger.info(user_input)
             break
 
-        messages.append({"role": "user", "content": user_input})
+        messages.append(
+            {
+                "role": "user",
+                "content": settings.USER_INPUT_TEMPLATE.format(
+                    relevant_document=return_response(user_input),
+                    user_input=user_input,
+                ),
+            }
+        )
 
         try:
             stream = await client.chat(
