@@ -1,5 +1,5 @@
-import asyncio
 import sys
+from signal import SIGINT
 
 import ollama
 from colorama import Fore, Style
@@ -12,7 +12,7 @@ from common.settings import settings
 
 class BasicRAG:
     def __init__(self, args: CliArguments):
-        self.args = args
+        self.model = args.model or "llama3.2"
         self.user_input_template: str = """
         This is the recommended activity: {relevant_document}.
 
@@ -29,18 +29,6 @@ class BasicRAG:
         Compile a recommendation to the user based on the recommended activity and user input. Do not make
         references to the relevant document. Reply as if it were your own recommendation.
         """
-        self.corpus: list[str] = [
-            "Take a leisurely walk in the park and enjoy the fresh air.",
-            "Visit a local museum and discover something new.",
-            "Attend a live music concert and feel the rhythm.",
-            "Go for a hike and admire the natural scenery.",
-            "Have a picnic with friends and share some laughs.",
-            "Explore a new cuisine by dining at an ethnic restaurant.",
-            "Take a yoga class and stretch your body and mind.",
-            "Join a local sports league and enjoy some friendly competition.",
-            "Attend a workshop or lecture on a topic you're interested in.",
-            "Visit an amusement park and ride the roller coasters.",
-        ]
         self.messages: list[dict[str, str]] = [
             {
                 "role": "system",
@@ -50,10 +38,10 @@ class BasicRAG:
 
     async def __call__(self):
         client = ollama.AsyncClient(str(settings.OLLAMA_URL))
-        logger.info(f"Pulling model {self.args.model}...")
+        logger.info(f"Pulling model {self.model}...")
 
         try:
-            stream = await client.pull(self.args.model, stream=True)
+            stream = await client.pull(self.model, stream=True)
 
             with tqdm(total=0) as pbar:
                 async for chunk in stream:
@@ -66,12 +54,16 @@ class BasicRAG:
             logger.error(f"An error occurred while pulling the model: {e}")
             sys.exit(1)
         else:
-            logger.success(f"Model {self.args.model} pulled")
+            logger.success(f"Model {self.model} pulled")
 
         while True:
-            user_input = input("\n\n" + Fore.GREEN + "You: " + Style.RESET_ALL)
+            try:
+                user_input = input("\n\n" + Fore.GREEN + "You: " + Style.RESET_ALL)
+            except KeyboardInterrupt:
+                sys.exit(SIGINT)
 
             if user_input.lower() == settings.BREAK_WORD:
+                print("")
                 logger.info(user_input)
                 break
 
@@ -87,9 +79,7 @@ class BasicRAG:
 
             try:
                 stream = await client.chat(
-                    model=self.args.model,
-                    messages=self.messages,
-                    stream=True,
+                    model=self.model, messages=self.messages, stream=True
                 )
                 print("\n" + Fore.BLUE + "AI: " + Style.RESET_ALL, end="")
                 bot_response = ""
@@ -111,17 +101,20 @@ class BasicRAG:
     @staticmethod
     def jaccard_similarity(query: str, document: str) -> float:
         query = set(query.lower().split(" "))
-        document = set(document.lower().split())
+        document = set(document.lower().split(" "))
         intersection = query & document
         union = query | document
         return len(intersection) / len(union)
 
     def return_response(self, query: str) -> str:
-        similarities = [self.jaccard_similarity(query, c) for c in self.corpus]
-        return self.corpus[similarities.index(max(similarities))]
+        similarities = [
+            self.jaccard_similarity(query, c) for c in settings.BASIC_RAG_CORPUS
+        ]
+        return settings.BASIC_RAG_CORPUS[similarities.index(max(similarities))]
 
 
 if __name__ == "__main__":
+    import asyncio
     from argparse import ArgumentParser
 
     parser = ArgumentParser(
@@ -130,7 +123,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "-m",
         "--model",
-        default=settings.DEFAULT_MODEL_NAME,
+        default=None,
         help="Ollama model name",
         type=str,
     )
