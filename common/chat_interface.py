@@ -1,5 +1,4 @@
 import sys
-from abc import ABC
 from collections.abc import Callable
 from signal import SIGINT
 
@@ -11,8 +10,9 @@ from tqdm import tqdm
 from common.settings import settings
 
 
-class ChatInterface(ABC):
+class ChatInterface:
     base_prompt: str
+    user_input_template: str
 
     def __init__(self, model: str):
         self.model = model

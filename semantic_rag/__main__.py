@@ -1,19 +1,6 @@
-from loguru import logger
-from sentence_transformers import SentenceTransformer
-
 from common.schemas import CliArguments
-from common.settings import settings
 
-
-class SemanticRAG:
-    def __init__(self, args: CliArguments):
-        self.model = args.model or "all-MiniLM-L6-v2"
-        self.transformer = SentenceTransformer(self.model)
-        self.embeddings = self.transformer.encode(settings.BASIC_RAG_CORPUS)
-
-    async def __call__(self, *args, **kwargs):
-        logger.info(self.embeddings)
-
+from .semantic_rag import SemanticRAG
 
 if __name__ == "__main__":
     import asyncio
@@ -31,5 +18,5 @@ if __name__ == "__main__":
     )
     parsed = parser.parse_args()
 
-    rag = SemanticRAG(CliArguments.model_validate(parsed))
+    rag = SemanticRAG(**CliArguments.model_validate(parsed).model_dump())
     asyncio.run(rag())
