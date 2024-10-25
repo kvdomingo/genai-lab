@@ -1,23 +1,18 @@
-import sys
-from signal import SIGINT
+from collections.abc import Callable
 
-import ollama
-from colorama import Fore, Style
-from loguru import logger
-from tqdm import tqdm
-
+from common.chat_interface import ChatInterface
 from common.schemas import CliArguments
 from common.settings import settings
 
 
-class BasicRAG:
-    def __init__(self, args: CliArguments):
-        self.model = args.model or "llama3.2"
+class BasicRAG(ChatInterface):
+    def __init__(self, model: str):
         self.user_input_template: str = """
         This is the recommended activity: {relevant_document}.
 
         The user input is: {user_input}.
-        """
+        """.strip()
+
         self.base_prompt: str = f"""
         You are a helpful assistant that makes recommendations for activities. You answer questions directly
         and concisely, and you do not include extra information unless asked. Use a friendly tone.
@@ -28,75 +23,24 @@ class BasicRAG:
         ---
         Compile a recommendation to the user based on the recommended activity and user input. Do not make
         references to the relevant document. Reply as if it were your own recommendation.
-        """
+        """.strip()
+
         self.messages: list[dict[str, str]] = [
             {
                 "role": "system",
                 "content": self.base_prompt,
             }
         ]
+        super().__init__(model or "llama3.2")
 
-    async def __call__(self):
-        client = ollama.AsyncClient(str(settings.OLLAMA_URL))
-        logger.info(f"Pulling model {self.model}...")
-
-        try:
-            stream = await client.pull(self.model, stream=True)
-
-            with tqdm(total=0) as pbar:
-                async for chunk in stream:
-                    if "completed" in chunk.keys() and "total" in chunk.keys():
-                        pbar.total = chunk["total"]
-                        pbar.update(chunk["completed"])
-                    else:
-                        logger.info(chunk)
-        except ollama.ResponseError as e:
-            logger.error(f"An error occurred while pulling the model: {e}")
-            sys.exit(1)
-        else:
-            logger.success(f"Model {self.model} pulled")
-
-        while True:
-            try:
-                user_input = input("\n\n" + Fore.GREEN + "You: " + Style.RESET_ALL)
-            except KeyboardInterrupt:
-                sys.exit(SIGINT)
-
-            if user_input.lower() == settings.BREAK_WORD:
-                print("")
-                logger.info(user_input)
-                break
-
-            self.messages.append(
-                {
-                    "role": "user",
-                    "content": self.user_input_template.format(
-                        relevant_document=self.return_response(user_input),
-                        user_input=user_input,
-                    ),
-                }
+    def user_input_formatter(self) -> Callable[[str], str]:
+        def func(user_input: str) -> str:
+            return self.user_input_template.format(
+                relevant_document=self.return_response(user_input),
+                user_input=user_input,
             )
 
-            try:
-                stream = await client.chat(
-                    model=self.model, messages=self.messages, stream=True
-                )
-                print("\n" + Fore.BLUE + "AI: " + Style.RESET_ALL, end="")
-                bot_response = ""
-
-                async for chunk in stream:
-                    content = chunk["message"]["content"]
-                    bot_response += content
-                    print(content, end="", flush=True)
-
-                self.messages.append({"role": "assistant", "content": bot_response})
-            except ollama.ResponseError as e:
-                logger.error(
-                    f"There was an error with the response. Please try again in a bit.\n\nError:\n{e}"
-                )
-            except Exception as e:
-                logger.error(f"An unexpected error occurred.\n\nError:\n{e}")
-                sys.exit(1)
+        return func
 
     @staticmethod
     def jaccard_similarity(query: str, document: str) -> float:
@@ -129,6 +73,6 @@ if __name__ == "__main__":
     )
     parsed = parser.parse_args()
 
-    rag = BasicRAG(CliArguments.model_validate(parsed))
+    rag = BasicRAG(**CliArguments.model_validate(parsed).model_dump())
 
     asyncio.run(rag())
