@@ -19,12 +19,12 @@ poetry shell
 task
 
 # Run the chatbot
-python -m basic_rag
+python -m vanilla
 ```
 
 The chatbot uses the  `llama3.2` (3B) model by default. To change the model, get the model name from
 the Ollama [models](https://ollama.com/library) list and pass it to the `-m`/`--model` argument.
 
 ```shell
-python -m basic_rag -- --model gemma2
+python -m vanilla -- --model gemma2
 ```
