@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "llm-lab"
+name = "genai-lab"
 version = "0.1.0"
 description = ""
 authors = ["Kenneth V. Domingo <hello@kvd.studio>"]

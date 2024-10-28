@@ -1,4 +1,4 @@
-# LLM Lab
+# GenAI Lab
 
 ## Prerequisites
 
