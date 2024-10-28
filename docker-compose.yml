@@ -1,6 +1,7 @@
 services:
   ollama:
     image: ollama/ollama:0.3.14
+    restart: unless-stopped
     deploy:
       resources:
         reservations:

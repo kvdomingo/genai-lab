@@ -5,6 +5,7 @@ from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
+    OPENAI_API_KEY: str
     OLLAMA_URL: AnyHttpUrl = "http://localhost:11434"
     BREAK_WORD: str = "bye"
     BASE_PROMPT: str = """
