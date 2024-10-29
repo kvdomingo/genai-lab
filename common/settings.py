@@ -1,11 +1,16 @@
 from functools import lru_cache
+from pathlib import Path
 
 from pydantic import AnyHttpUrl
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
+    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
+
     OPENAI_API_KEY: str
+
+    BASE_DIR: Path = Path(__file__).resolve().parent.parent
     OLLAMA_URL: AnyHttpUrl = "http://localhost:11434"
     BREAK_WORD: str = "bye"
     BASE_PROMPT: str = """
