@@ -9,6 +9,7 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
 
     OPENAI_API_KEY: str
+    OPENAI_PROJECT_ID: str
 
     BASE_DIR: Path = Path(__file__).resolve().parent.parent
     OLLAMA_URL: AnyHttpUrl = "http://localhost:11434"
