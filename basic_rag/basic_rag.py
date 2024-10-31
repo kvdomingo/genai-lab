@@ -1,10 +1,10 @@
 from collections.abc import Callable
 
-from common.chat_interface import ChatInterface
+from common.chat_interfaces.sdk import SDKChatInterface
 from common.settings import settings
 
 
-class BasicRAG(ChatInterface):
+class BasicRAG(SDKChatInterface):
     def __init__(self, model: str):
         self.user_input_template: str = """
         This is the recommended activity: {relevant_document}.

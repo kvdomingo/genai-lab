@@ -1,7 +1,7 @@
-from common.chat_interface import ChatInterface
+from common.chat_interfaces.sdk import SDKChatInterface
 
 
-class BasicBot(ChatInterface):
+class BasicBot(SDKChatInterface):
     def __init__(self, model: str):
         self.base_prompt = """
         You are a helpful, friendly assistant. You answer questions directly

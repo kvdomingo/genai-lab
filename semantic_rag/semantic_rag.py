@@ -4,11 +4,11 @@ from inspect import signature
 from sentence_transformers import SentenceTransformer
 from sklearn.metrics.pairwise import cosine_similarity
 
-from common.chat_interface import ChatInterface
+from common.chat_interfaces.sdk import SDKChatInterface
 from common.settings import settings
 
 
-class SemanticRAG(ChatInterface):
+class SemanticRAG(SDKChatInterface):
     transformer: SentenceTransformer
     doc_embeddings: signature(SentenceTransformer.encode).return_annotation
     threshold = 0.3
