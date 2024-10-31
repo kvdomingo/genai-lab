@@ -17,13 +17,14 @@ class LangchainChatInterface(ChatInterface):
     user_input_template: str
     temperature: float = 0.8
 
-    def __init__(self, model: str):
+    def __init__(self, model: str, json_mode: bool = False):
         self.model = model
         self.client = ollama.AsyncClient(str(settings.OLLAMA_URL))
         self.llm = ChatOllama(
             model=self.model,
             base_url=str(settings.OLLAMA_URL),
             temperature=self.temperature,
+            format="json" if json_mode else "",
         )
         self.messages: list[tuple[Literal["system", "human", "assistant"], str]] = [
             ("system", self.base_prompt),
