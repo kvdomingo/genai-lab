@@ -14,4 +14,4 @@ class JSONMode(LangchainChatInterface):
 
     def __init__(self, args: CliArguments):
         self.model = args.model or self.model
-        super().__init__(self.model)
+        super().__init__(model=self.model, json_mode=True)

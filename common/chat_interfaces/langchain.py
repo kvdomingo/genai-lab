@@ -7,6 +7,7 @@ import ollama
 from colorama import Fore, Style
 from langchain_ollama import ChatOllama
 from loguru import logger
+from pydantic import BaseModel
 
 from common.settings import settings
 
@@ -16,16 +17,30 @@ from .base import ChatInterface
 class LangchainChatInterface(ChatInterface):
     user_input_template: str
     temperature: float = 0.8
+    disable_streaming: bool = False
 
-    def __init__(self, model: str, json_mode: bool = False):
+    def __init__(
+        self,
+        model: str,
+        json_mode: bool = False,
+        tools: list[BaseModel | Callable] = None,
+    ):
         self.model = model
+        self.json_mode = json_mode
+        self.tools = tools or []
+
         self.client = ollama.AsyncClient(str(settings.OLLAMA_URL))
         self.llm = ChatOllama(
             model=self.model,
             base_url=str(settings.OLLAMA_URL),
             temperature=self.temperature,
-            format="json" if json_mode else "",
+            format="json" if self.json_mode else "",
         )
+
+        if len(self.tools) > 0:
+            self.llm.bind_tools(self.tools)
+            self.disable_streaming = True
+
         self.messages: list[tuple[Literal["system", "human", "assistant"], str]] = [
             ("system", self.base_prompt),
         ]
@@ -55,10 +70,15 @@ class LangchainChatInterface(ChatInterface):
                 print("\n" + Fore.BLUE + "AI: " + Style.RESET_ALL, end="")
                 bot_response = ""
 
-                async for chunk in self.llm.astream(self.messages):
-                    content = chunk.content
-                    bot_response += content
-                    print(content, end="", flush=True)
+                if self.disable_streaming:
+                    res = await self.llm.ainvoke(self.messages)
+                    bot_response = res.content
+                    print(bot_response)
+                else:
+                    async for chunk in self.llm.astream(self.messages):
+                        content = chunk.content
+                        bot_response += content
+                        print(content, end="", flush=True)
 
                 self.messages.append(("assistant", bot_response))
             except Exception as e:
