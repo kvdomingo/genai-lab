@@ -7,15 +7,13 @@ from zoneinfo import ZoneInfo
 
 import httpx
 from openai import AsyncOpenAI
-from pydantic import UUID4, BaseModel, ConfigDict, Field
+from pydantic import UUID4, BaseModel
 
+from common.schemas import CliArguments as BaseCliArguments
 from common.settings import settings
 
 
-class CliArguments(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
-
-    model: str | None = Field(None)
+class CliArguments(BaseCliArguments):
     prompt: str
 
 
