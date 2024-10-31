@@ -1,3 +1,4 @@
+import json
 import sys
 from collections.abc import Callable
 from signal import SIGINT
@@ -17,13 +18,14 @@ from .base import ChatInterface
 class LangchainChatInterface(ChatInterface):
     user_input_template: str
     temperature: float = 0.8
-    disable_streaming: bool = False
+    is_tool_calling: bool = False
+    base_prompt: str
 
     def __init__(
         self,
         model: str,
         json_mode: bool = False,
-        tools: list[BaseModel | Callable] = None,
+        tools: list[type[BaseModel]] = None,
     ):
         self.model = model
         self.json_mode = json_mode
@@ -38,12 +40,13 @@ class LangchainChatInterface(ChatInterface):
         )
 
         if len(self.tools) > 0:
-            self.llm.bind_tools(self.tools)
-            self.disable_streaming = True
+            self.llm = self.llm.bind_tools(self.tools)
+            self.is_tool_calling = True
 
-        self.messages: list[tuple[Literal["system", "human", "assistant"], str]] = [
-            ("system", self.base_prompt),
-        ]
+        self.messages: list[tuple[Literal["system", "human", "assistant"], str]] = []
+        if self.base_prompt:
+            self.messages.append(("system", self.base_prompt))
+
         self.format_user_input = self.user_input_formatter()
 
     def user_input_formatter(self) -> Callable[[str], str]:
@@ -70,10 +73,10 @@ class LangchainChatInterface(ChatInterface):
                 print("\n" + Fore.BLUE + "AI: " + Style.RESET_ALL, end="")
                 bot_response = ""
 
-                if self.disable_streaming:
-                    res = await self.llm.ainvoke(self.messages)
-                    bot_response = res.content
-                    print(bot_response)
+                if self.is_tool_calling:
+                    res = await self.llm.ainvoke(self.messages[-1][1])
+                    bot_response = res.tool_calls
+                    print(json.dumps(bot_response, indent=2))
                 else:
                     async for chunk in self.llm.astream(self.messages):
                         content = chunk.content

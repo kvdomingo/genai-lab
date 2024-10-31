@@ -9,7 +9,6 @@ from tqdm import tqdm
 class ChatInterface(ABC):
     client: ollama.AsyncClient
     model: str
-    base_prompt: str
 
     async def __call__(self):
         await self.setup()
