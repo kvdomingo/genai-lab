@@ -13,6 +13,11 @@ class Settings(BaseSettings):
 
     BASE_DIR: Path = Path(__file__).resolve().parent.parent
     OLLAMA_URL: AnyHttpUrl = "http://localhost:11434"
+    USER_AGENT: str
+
+    CHROMA_HOST: str = "localhost"
+    CHROMA_PORT: int = 8000
+
     BREAK_WORD: str = "bye"
     BASE_PROMPT: str = """
     You are a friendly, helpful, general-purpose AI assistant. You answer any questions directly and concisely,

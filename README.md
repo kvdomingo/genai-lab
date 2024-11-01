@@ -15,7 +15,7 @@ mise install
 # Enter Poetry shell
 poetry shell
 
-# Start the Ollama backend
+# Start the Ollama backend and Chroma vector database
 task
 
 # Run the chatbot
