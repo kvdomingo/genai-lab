@@ -19,3 +19,28 @@ services:
     restart: unless-stopped
     ports:
       - '8000:8000'
+
+  dagster-db:
+    image: bitnami/postgresql:16.4.0-debian-12-r21
+    restart: unless-stopped
+    env_file: .env
+    volumes:
+      - dagster-db-data:/bitnami/postgresql
+
+  dagster:
+    build: .
+    image: kvdomingo/genai-lab-dagster
+    restart: unless-stopped
+    init: true
+    command: [ /app/docker-entrypoint.sh ]
+    env_file: .env
+    volumes:
+      - .:/app
+      - ./dagster.yaml:/opt/dagster/dagster.yaml
+      - dagster-venv-data:/app/.venv
+    ports:
+      - '3030:3030'
+
+volumes:
+  dagster-db-data:
+  dagster-venv-data:

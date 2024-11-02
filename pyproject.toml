@@ -6,7 +6,7 @@ authors = ["Kenneth V. Domingo <hello@kvd.studio>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.12"
+python = "^3.12,<3.13"
 httpx = "^0.27.2"
 ollama = "^0.3.3"
 loguru = "^0.7.2"
@@ -25,16 +25,22 @@ langchain-anthropic = "^0.2.4"
 langchain-community = "^0.3.4"
 langchain-chroma = "^0.1.4"
 tiktoken = "^0.8.0"
+dagster = "^1.9.0"
+dagster-postgres = "^0.25.0"
 
 [tool.poetry.group.dev.dependencies]
 ruff = "^0.7.0"
 ipython = "^8.28.0"
 jupyter = "^1.1.1"
 notebook = "^7.2.2"
+dagster-webserver = "^1.9.0"
 
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.dagster]
+module_name = "pipeline.definitions"
 
 [tool.ruff]
 target-version = "py312"
