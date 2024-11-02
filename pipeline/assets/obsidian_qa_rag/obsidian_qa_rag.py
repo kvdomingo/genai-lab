@@ -14,7 +14,7 @@ from common.pull_model import pull_model
 from common.settings import settings
 
 
-@dg.asset
+@dg.asset(kinds={"ollama"})
 async def obsidian__embedding_model(
     ollama_client: dg.ResourceParam[OllamaAsyncClient],
 ) -> str:
@@ -23,7 +23,7 @@ async def obsidian__embedding_model(
     return name
 
 
-@dg.asset(deps=[obsidian__embedding_model])
+@dg.asset(kinds={"ollama", "langchain"}, deps=[obsidian__embedding_model])
 def obsidian__plaintext_documents(
     context: dg.AssetExecutionContext,
 ) -> list[Document]:
@@ -42,7 +42,7 @@ def obsidian__plaintext_documents(
     return docs
 
 
-@dg.asset
+@dg.asset(kinds={"ollama", "langchain"})
 def obsidian__split_documents(
     context: dg.AssetExecutionContext,
     obsidian__plaintext_documents: list[Document],
@@ -63,7 +63,7 @@ def obsidian__split_documents(
     return all_splits
 
 
-@dg.asset
+@dg.asset(kinds={"ollama", "chromadb"})
 def obsidian__vector_store(
     context: dg.AssetExecutionContext,
     chroma_client: dg.ResourceParam[ChromaHttpClient],
