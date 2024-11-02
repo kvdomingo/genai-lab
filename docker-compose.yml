@@ -34,6 +34,8 @@ services:
     init: true
     command: [ /app/docker-entrypoint.sh ]
     env_file: .env
+    environment:
+      CHROMA_HOST: chromadb
     volumes:
       - .:/app
       - ./dagster.yaml:/opt/dagster/dagster.yaml
