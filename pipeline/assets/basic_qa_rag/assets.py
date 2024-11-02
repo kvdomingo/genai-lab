@@ -15,18 +15,20 @@ from common.settings import settings
 @dg.asset
 async def embedding_model(ollama_client: dg.ResourceParam[ollama.AsyncClient]) -> str:
     name = "mxbai-embed-large"
-    await pull_model(
-        ollama_client,
-    )
+    await pull_model(ollama_client, name)
     return name
 
 
 @dg.asset(deps=[embedding_model])
-def plaintext_documents(
-    context: dg.AssetExecutionContext,
-    chroma_client: dg.ResourceParam[chromadb.HttpClient],
-) -> list[Document]:
-    web_paths = ("https://kvd.studio/svip/ap186/image-types",)
+def plaintext_documents(context: dg.AssetExecutionContext) -> list[Document]:
+    web_paths = (
+        "https://kvd.studio/svip/ap186/basic-video",
+        "https://kvd.studio/svip/ap186/blob-analysis",
+        "https://kvd.studio/svip/ap186/practical-2",
+        "https://kvd.studio/svip/ap186/image-segmentation",
+        "https://kvd.studio/svip/ap186/image-types",
+        "https://kvd.studio/svip/ap186/measuring-area",
+    )
 
     bs4_strainer = SoupStrainer(
         name=(
@@ -92,4 +94,5 @@ def vector_store(
             base_url=str(settings.OLLAMA_URL),
             model=embedding_model,
         ),
+        collection_name="basic_qa_rag",
     )

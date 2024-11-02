@@ -17,6 +17,8 @@ services:
   chromadb:
     image: chromadb/chroma:0.5.17
     restart: unless-stopped
+    volumes:
+      - chromadb-data:/chroma/chroma
     ports:
       - '8000:8000'
 
@@ -36,6 +38,7 @@ services:
     env_file: .env
     environment:
       CHROMA_HOST: chromadb
+      OLLAMA_URL: http://ollama:11434
     volumes:
       - .:/app
       - ./dagster.yaml:/opt/dagster/dagster.yaml
@@ -44,5 +47,6 @@ services:
       - '3030:3030'
 
 volumes:
+  chromadb-data:
   dagster-db-data:
   dagster-venv-data:
