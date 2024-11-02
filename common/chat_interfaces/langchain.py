@@ -1,15 +1,14 @@
 import json
 import sys
 from collections.abc import Callable
-from signal import SIGINT
 from typing import Literal
 
 import ollama
-from colorama import Fore, Style
 from langchain_ollama import ChatOllama
 from loguru import logger
 from pydantic import BaseModel
 
+from common.chat_building_blocks.io_lines import get_user_input, render_bot_pre_line
 from common.settings import settings
 
 from .base import ChatInterface
@@ -57,20 +56,11 @@ class LangchainChatInterface(ChatInterface):
 
     async def chat(self):
         while True:
-            try:
-                user_input = input("\n\n" + Fore.GREEN + "You: " + Style.RESET_ALL)
-            except KeyboardInterrupt:
-                sys.exit(SIGINT)
-
-            if user_input.lower() == settings.BREAK_WORD:
-                print("")
-                logger.info(user_input)
-                break
-
+            user_input = get_user_input()
             self.messages.append(("human", self.format_user_input(user_input)))
 
             try:
-                print("\n" + Fore.BLUE + "AI: " + Style.RESET_ALL, end="")
+                render_bot_pre_line()
                 bot_response = ""
 
                 if self.is_tool_calling:

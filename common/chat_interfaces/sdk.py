@@ -1,11 +1,13 @@
 import sys
 from collections.abc import Callable
-from signal import SIGINT
 
 import ollama
-from colorama import Fore, Style
 from loguru import logger
 
+from common.chat_building_blocks.io_lines import (
+    get_user_input,
+    render_bot_pre_line,
+)
 from common.settings import settings
 
 from .base import ChatInterface
@@ -13,6 +15,7 @@ from .base import ChatInterface
 
 class SDKChatInterface(ChatInterface):
     user_input_template: str
+    base_prompt: str
 
     def __init__(self, model: str):
         self.model = model
@@ -30,16 +33,7 @@ class SDKChatInterface(ChatInterface):
 
     async def chat(self):
         while True:
-            try:
-                user_input = input("\n\n" + Fore.GREEN + "You: " + Style.RESET_ALL)
-            except KeyboardInterrupt:
-                sys.exit(SIGINT)
-
-            if user_input.lower() == settings.BREAK_WORD:
-                print("")
-                logger.info(user_input)
-                break
-
+            user_input = get_user_input()
             self.messages.append(
                 {
                     "role": "user",
@@ -51,7 +45,7 @@ class SDKChatInterface(ChatInterface):
                 stream = await self.client.chat(
                     model=self.model, messages=self.messages, stream=True
                 )
-                print("\n" + Fore.BLUE + "AI: " + Style.RESET_ALL, end="")
+                render_bot_pre_line()
                 bot_response = ""
 
                 async for chunk in stream:

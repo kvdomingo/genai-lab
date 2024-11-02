@@ -1,5 +1,3 @@
-import sys
-
 import bs4
 import chromadb
 import ollama
@@ -11,9 +9,9 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.vectorstores import VectorStoreRetriever
 from langchain_ollama import ChatOllama, OllamaEmbeddings
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from loguru import logger
 from pydantic import BaseModel, ConfigDict
 
+from common.chat_building_blocks.io_lines import get_user_input, render_bot_pre_line
 from common.pull_model import pull_model
 from common.settings import settings
 
@@ -123,14 +121,8 @@ class BasicQaRag:
 
         while True:
             sources = []
-            question = input("\n\nYou: ")
-
-            if question.lower() == settings.BREAK_WORD:
-                print("\n\n")
-                logger.info(question)
-                sys.exit(0)
-
-            print("\n\nAI: ", end="")
+            question = get_user_input()
+            render_bot_pre_line()
 
             async for out in rag_chain.astream({"input": question}):
                 if out.get("context"):
