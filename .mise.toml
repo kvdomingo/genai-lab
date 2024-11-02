@@ -1,4 +1,4 @@
 [tools]
-python = "3.12"
 poetry = "latest"
 task = "latest"
+python = "3.11"

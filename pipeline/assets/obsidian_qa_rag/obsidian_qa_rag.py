@@ -4,7 +4,7 @@ import dagster as dg
 from chromadb import HttpClient as ChromaHttpClient
 from dagster import MetadataValue
 from langchain_chroma import Chroma
-from langchain_community.document_loaders import DirectoryLoader
+from langchain_community.document_loaders import ObsidianLoader
 from langchain_core.documents import Document
 from langchain_ollama import OllamaEmbeddings
 from langchain_text_splitters import RecursiveCharacterTextSplitter
@@ -28,9 +28,7 @@ def obsidian__plaintext_documents(
     context: dg.AssetExecutionContext,
 ) -> list[Document]:
     source_dir = Path("/opt/obsidian").resolve()
-    loader = DirectoryLoader(
-        str(source_dir / "Films"), glob="**/*.md", use_multithreading=True
-    )
+    loader = ObsidianLoader(str(source_dir), collect_metadata=False)
     docs = loader.load()
 
     context.add_output_metadata(
@@ -48,8 +46,8 @@ def obsidian__split_documents(
     obsidian__plaintext_documents: list[Document],
 ) -> list[Document]:
     text_splitter = RecursiveCharacterTextSplitter(
-        chunk_size=1000,
-        chunk_overlap=200,
+        chunk_size=250,
+        chunk_overlap=30,
         add_start_index=True,
     )
     all_splits = text_splitter.split_documents(obsidian__plaintext_documents)
