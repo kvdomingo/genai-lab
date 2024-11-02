@@ -1,3 +1,5 @@
+import sys
+
 import chromadb
 import ollama
 from langchain.chains.combine_documents import create_stuff_documents_chain
@@ -5,11 +7,16 @@ from langchain.chains.retrieval import create_retrieval_chain
 from langchain_chroma import Chroma
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_ollama import ChatOllama, OllamaEmbeddings
+from loguru import logger
 
 from common.chat_building_blocks.io_lines import get_user_input, render_bot_pre_line
 from common.pull_model import pull_model
-from common.schemas import CliArguments
+from common.schemas import CliArguments as BaseCliArguments
 from common.settings import settings
+
+
+class CliArguments(BaseCliArguments):
+    collection_name: str
 
 
 class BasicQaRag:
@@ -27,6 +34,7 @@ class BasicQaRag:
 
     def __init__(self, args: CliArguments):
         self.model = args.model or self.model
+        self.collection_name = args.collection_name
         self.db = chromadb.HttpClient(
             host=settings.CHROMA_HOST, port=settings.CHROMA_PORT
         )
@@ -44,13 +52,21 @@ class BasicQaRag:
         await self.chat()
 
     async def setup(self):
+        coll = self.db.get_collection(self.collection_name)
+        peek = coll.peek(1)
+        if len(peek.get("documents", [])) == 0:
+            logger.error(
+                f"Collection `{self.collection_name}` is empty or does not exist."
+            )
+            sys.exit(1)
+
         await pull_model(self.client, self.model)
         await pull_model(self.client, self.embedding_model)
 
     async def chat(self):
         vector_store = Chroma(
             client=self.db,
-            collection_name="basic_qa_rag",
+            collection_name=self.collection_name,
             embedding_function=OllamaEmbeddings(
                 base_url=str(settings.OLLAMA_URL),
                 model=self.embedding_model,

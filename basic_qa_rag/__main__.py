@@ -1,6 +1,4 @@
-from common.schemas import CliArguments
-
-from .basic_qa_rag import BasicQaRag
+from .basic_qa_rag import BasicQaRag, CliArguments
 
 if __name__ == "__main__":
     import asyncio
@@ -14,6 +12,13 @@ if __name__ == "__main__":
         "--model",
         default=None,
         help="Ollama model name",
+        type=str,
+    )
+    parser.add_argument(
+        "-c",
+        "--collection-name",
+        default="basic_qa_rag",
+        help="Chroma/document collection name",
         type=str,
     )
     parsed = parser.parse_args()

@@ -28,6 +28,7 @@ tiktoken = "^0.8.0"
 dagster = "^1.9.0"
 dagster-postgres = "^0.25.0"
 chromadb-client = "^0.5.17"
+unstructured = {extras = ["md"], version = "^0.16.4"}
 
 [tool.poetry.group.dev.dependencies]
 ruff = "^0.7.0"
