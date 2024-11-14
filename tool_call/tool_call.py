@@ -1,27 +1,25 @@
-from pydantic import BaseModel, Field
+from langchain_core.tools import tool
 
 from common.chat_interfaces.langchain import LangchainChatInterface
 from common.schemas import CliArguments
 
 
-class Multiply(BaseModel):
+@tool
+def multiply(a: int | float, b: int | float) -> int | float:
     """Multiply two numbers."""
-
-    a: int | float = Field(..., description="First number")
-    b: int | float = Field(..., description="Second number")
+    return a * b
 
 
-class Add(BaseModel):
+@tool
+def add(a: int | float, b: int | float) -> int | float:
     """Add two numbers."""
-
-    a: int | float = Field(..., description="First number")
-    b: int | float = Field(..., description="Second number")
+    return a + b
 
 
 class ToolCalling(LangchainChatInterface):
-    model = "mistral-nemo"
+    model = "llama3.2"
     base_prompt = None
 
     def __init__(self, args: CliArguments):
         self.model = args.model or self.model
-        super().__init__(model=self.model, json_mode=True, tools=[Multiply, Add])
+        super().__init__(model=self.model, json_mode=True, tools=[multiply, add])

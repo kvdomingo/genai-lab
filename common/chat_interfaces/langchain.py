@@ -1,12 +1,15 @@
-import json
-import sys
 from collections.abc import Callable
-from typing import Literal
 
 import ollama
+from langchain_core.messages import (
+    AIMessage,
+    BaseMessage,
+    HumanMessage,
+    SystemMessage,
+)
+from langchain_core.tools import BaseTool
 from langchain_ollama import ChatOllama
 from loguru import logger
-from pydantic import BaseModel
 
 from common.chat_building_blocks.io_lines import get_user_input, render_bot_pre_line
 from common.settings import settings
@@ -24,11 +27,12 @@ class LangchainChatInterface(ChatInterface):
         self,
         model: str,
         json_mode: bool = False,
-        tools: list[type[BaseModel]] = None,
+        tools: list[BaseTool] = None,
     ):
         self.model = model
         self.json_mode = json_mode
         self.tools = tools or []
+        self.tool_selection = {t.name: t for t in self.tools}
 
         self.client = ollama.AsyncClient(str(settings.OLLAMA_URL))
         self.llm = ChatOllama(
@@ -42,9 +46,9 @@ class LangchainChatInterface(ChatInterface):
             self.llm = self.llm.bind_tools(self.tools)
             self.is_tool_calling = True
 
-        self.messages: list[tuple[Literal["system", "human", "assistant"], str]] = []
+        self.messages: list[BaseMessage] = []
         if self.base_prompt:
-            self.messages.append(("system", self.base_prompt))
+            self.messages.append(SystemMessage(self.base_prompt))
 
         self.format_user_input = self.user_input_formatter()
 
@@ -57,23 +61,28 @@ class LangchainChatInterface(ChatInterface):
     async def chat(self):
         while True:
             user_input = get_user_input()
-            self.messages.append(("human", self.format_user_input(user_input)))
+            self.messages.append(HumanMessage(self.format_user_input(user_input)))
 
             try:
                 render_bot_pre_line()
                 bot_response = ""
 
                 if self.is_tool_calling:
-                    res = await self.llm.ainvoke(self.messages[-1][1])
-                    bot_response = res.tool_calls
-                    print(json.dumps(bot_response, indent=2))
+                    res = await self.llm.ainvoke(self.messages)
+                    for tc in res.tool_calls:
+                        selected_tool = self.tool_selection[tc["name"]]
+                        bot_response = await selected_tool.ainvoke(tc)
+                        content = bot_response.content
+                        print(content)
+
+                        self.messages.append(bot_response)
                 else:
                     async for chunk in self.llm.astream(self.messages):
                         content = chunk.content
                         bot_response += content
                         print(content, end="", flush=True)
 
-                self.messages.append(("assistant", bot_response))
+                    self.messages.append(AIMessage(bot_response))
             except Exception as e:
-                logger.error(f"An unexpected error occurred.\n\nError:\n{e}")
-                sys.exit(1)
+                logger.error(f"An unexpected error occurred.\n\nError:\n{e}\n")
+                raise
