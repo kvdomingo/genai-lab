@@ -178,3 +178,5 @@ pyrightconfig.json
 outputs/
 pipeline/artifacts/
 pipeline/storage/
+
+sqlite.db
