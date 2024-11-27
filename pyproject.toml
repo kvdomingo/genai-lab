@@ -31,6 +31,7 @@ chromadb-client = "^0.5.17"
 unstructured = { extras = ["md"], version = "^0.16.4" }
 diffusers = { extras = ["torch"], version = "^0.31.0" }
 huggingface-hub = { extras = ["cli"], version = "^0.26.2" }
+langsmith = "^0.1.146"
 
 [tool.poetry.group.dev.dependencies]
 ruff = "^0.7.0"

@@ -80,7 +80,7 @@ def portfolio__split_documents(
     context: dg.AssetExecutionContext,
     portfolio__plaintext_documents: list[Document],
 ) -> list[Document]:
-    text_splitter = RecursiveCharacterTextSplitter(
+    text_splitter = RecursiveCharacterTextSplitter.from_tiktoken_encoder(
         chunk_size=1000,
         chunk_overlap=200,
         add_start_index=True,

@@ -7,7 +7,8 @@ env:
 
 vars: { }
 
-dotenv: [ ]
+dotenv:
+  - .env
 
 tasks:
   default:
