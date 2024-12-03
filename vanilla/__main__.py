@@ -16,6 +16,13 @@ if __name__ == "__main__":
         help="Ollama model name",
         type=str,
     )
+    parser.add_argument(
+        "-p",
+        "--system-prompt",
+        default=None,
+        help="System prompt",
+        type=str,
+    )
     parsed = parser.parse_args()
 
     rag = BasicBot(**CliArguments.model_validate(parsed).model_dump())
