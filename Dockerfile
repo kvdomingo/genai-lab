@@ -11,7 +11,7 @@ ENV PATH=${PATH}:${POETRY_HOME}/bin
 SHELL [ "/bin/bash", "-euxo", "pipefail", "-c" ]
 
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends curl && \
+    apt-get install -y --no-install-recommends curl libgl1 tesseract-ocr && \
     curl -sSL https://install.python-poetry.org | python - && \
     poetry config virtualenvs.create true && \
     poetry config virtualenvs.in-project true

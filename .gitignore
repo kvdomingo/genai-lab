@@ -180,3 +180,6 @@ pipeline/artifacts/
 pipeline/storage/
 
 sqlite.db
+
+data/*
+!data/.gitkeep

@@ -12,9 +12,9 @@ async def pull_model(client: ollama.AsyncClient, model: str):
 
         with tqdm(total=0) as pbar:
             async for chunk in stream:
-                if "completed" in chunk.keys() and "total" in chunk.keys():
-                    pbar.total = chunk["total"]
-                    pbar.update(chunk["completed"])
+                if chunk.completed is not None and chunk.total is not None:
+                    pbar.total = chunk.total
+                    pbar.update(chunk.completed)
                 else:
                     logger.info(chunk)
     except ollama.ResponseError as e:

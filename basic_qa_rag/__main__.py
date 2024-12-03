@@ -11,7 +11,14 @@ if __name__ == "__main__":
         "-m",
         "--model",
         default=None,
-        help="Ollama model name",
+        help="Ollama chat model name",
+        type=str,
+    )
+    parser.add_argument(
+        "-e",
+        "--embedding-model",
+        default=None,
+        help="Ollama embedding model name",
         type=str,
     )
     parser.add_argument(

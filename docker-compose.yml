@@ -1,6 +1,6 @@
 services:
   ollama:
-    image: ollama/ollama:0.3.14
+    image: ollama/ollama:0.4.7
     restart: unless-stopped
     deploy:
       resources:
@@ -15,7 +15,7 @@ services:
       - '11434:11434'
 
   chromadb:
-    image: chromadb/chroma:0.5.17
+    image: chromadb/chroma:0.5.21
     restart: unless-stopped
     volumes:
       - chromadb-data:/chroma/chroma
@@ -23,7 +23,7 @@ services:
       - '8000:8000'
 
   dagster-db:
-    image: bitnami/postgresql:16.4.0-debian-12-r21
+    image: bitnami/postgresql:16.6.0
     restart: unless-stopped
     env_file: .env
     volumes:

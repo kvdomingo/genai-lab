@@ -16,6 +16,7 @@ from common.settings import settings
 
 
 class CliArguments(BaseCliArguments):
+    embedding_model: str
     collection_name: str
 
 
@@ -34,6 +35,7 @@ class BasicQaRag:
 
     def __init__(self, args: CliArguments):
         self.model = args.model or self.model
+        self.embedding_model = args.embedding_model or self.embedding_model
         self.collection_name = args.collection_name
         self.db = chromadb.HttpClient(
             host=settings.CHROMA_HOST, port=settings.CHROMA_PORT
