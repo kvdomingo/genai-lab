@@ -18,7 +18,7 @@ from common.settings import settings
 async def obsidian__embedding_model(
     ollama_client: dg.ResourceParam[OllamaAsyncClient],
 ) -> str:
-    name = "mxbai-embed-large"
+    name = "nomic-embed-text"
     await pull_model(ollama_client, name)
     return name
 

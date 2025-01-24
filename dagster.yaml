@@ -4,9 +4,12 @@ telemetry:
 storage:
   postgres:
     postgres_db:
-      username: dagster
-      password: dagster
-      db_name: dagster
+      username:
+        env: POSTGRESQL_USERNAME
+      password:
+        env: POSTGRESQL_PASSWORD
+      db_name:
+        env: POSTGRESQL_DATABASE
       hostname: dagster-db
       port: 5432
 
