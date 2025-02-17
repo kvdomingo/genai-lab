@@ -7,13 +7,15 @@ from zoneinfo import ZoneInfo
 
 import httpx
 from openai import AsyncOpenAI
-from pydantic import UUID4, BaseModel
+from pydantic import UUID4, BaseModel, ConfigDict, Field
 
-from common.schemas import CliArguments as BaseCliArguments
 from common.settings import settings
 
 
-class CliArguments(BaseCliArguments):
+class CliArguments(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    model: str | None = Field(None)
     prompt: str
 
 
@@ -70,14 +72,19 @@ class ImageGen:
         )
 
         with open(self.outputs_dir / "outputs.json", "w+") as fh:
-            json.dump([o.model_dump(mode="json") for o in self.outputs], fh, indent=2)
+            json.dump(
+                [o.model_dump(mode="json") for o in self.outputs],
+                fh,
+                indent=2,
+                ensure_ascii=False,
+            )
 
     def setup(self):
         os.makedirs(self.outputs_dir, exist_ok=True)
 
         if not (self.outputs_dir / "outputs.json").exists():
             with open(self.outputs_dir / "outputs.json", "w+") as fh:
-                json.dump([], fh, indent=2)
+                json.dump([], fh, indent=2, ensure_ascii=False)
         else:
             with open(self.outputs_dir / "outputs.json") as fh:
                 self.outputs = [Output.model_validate(j) for j in json.load(fh)]
