@@ -2,7 +2,7 @@ import os
 from functools import lru_cache
 from pathlib import Path
 
-from pydantic import AnyHttpUrl, Field
+from pydantic import AnyHttpUrl, Field, computed_field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -39,6 +39,7 @@ class Settings(BaseSettings):
     BASE_DIR: Path = Path(__file__).resolve().parent.parent
     OLLAMA_URL: AnyHttpUrl = "http://localhost:11434"
     USER_AGENT: str
+    SENSOR_MIN_INTERVAL_SECONDS: int = 30
 
     CHROMA_HOST: str = "localhost"
     CHROMA_PORT: int = 8000
@@ -50,6 +51,11 @@ class Settings(BaseSettings):
     up information.
     """
     BASIC_RAG_CORPUS: list[str] = Field(default_factory=_basic_rag_corpus_factory)
+
+    @computed_field
+    @property
+    def RAG_ROOT_DIR(self) -> Path:
+        return self.BASE_DIR / "data" / "rag"
 
 
 @lru_cache

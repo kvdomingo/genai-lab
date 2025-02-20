@@ -181,5 +181,5 @@ pipeline/storage/
 
 sqlite.db
 
-data/*
-!data/.gitkeep
+data/rag/*
+!data/rag/.gitkeep

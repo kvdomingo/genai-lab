@@ -1,4 +1,4 @@
 [tools]
-poetry = "latest"
+poetry = "1"
 task = "latest"
 python = "3.11"

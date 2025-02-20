@@ -22,7 +22,7 @@ class CliArguments(BaseCliArguments):
 
 class RagFusion:
     model: str = "llama3.2"
-    embedding_model: str = "mxbai-embed-large"
+    embedding_model: str = "nomic-embed-text"
     base_fusion_prompt = """
     You are a helpful assistant that generates multiple search queries based on a single
     input query.

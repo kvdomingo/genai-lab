@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import dagster as dg
 from chromadb import HttpClient as ChromaHttpClient
 from dagster import MetadataValue
@@ -11,6 +13,7 @@ from unstructured.cleaners.core import clean_extra_whitespace
 
 from common.pull_model import pull_model
 from common.settings import settings
+from pipeline.assets.pdf_rag.partitions import subdirectory_partitions
 
 
 @dg.asset(kinds={"ollama"})
@@ -22,35 +25,52 @@ async def pdf__embedding_model(
     return name
 
 
-@dg.asset(kinds={"ollama", "langchain", "unstructured"}, deps=[pdf__embedding_model])
-def pdf__parsed_documents(
-    context: dg.AssetExecutionContext,
-) -> list[Document]:
-    loader = UnstructuredLoader(
-        settings.BASE_DIR / "data/sample.pdf",
-        post_processors=[clean_extra_whitespace],
-        chunking_strategy="by_title",
-    )
-    docs = loader.load()
+@dg.asset(
+    kinds={"ollama", "langchain", "unstructured"},
+    deps=[pdf__embedding_model],
+    partitions_def=subdirectory_partitions,
+)
+def pdf__parsed_documents(context: dg.AssetExecutionContext) -> list[Document]:
+    subdirectory = context.partition_key
+    raw_docs: list[Path] = list((settings.RAG_ROOT_DIR / subdirectory).glob("*.pdf"))
+    loaded_docs = []
+
+    for i, doc in enumerate(raw_docs):
+        context.log.info(f"Loading document {i+1}/{len(raw_docs)}: {doc.name}")
+
+        loader = UnstructuredLoader(
+            doc,
+            post_processors=[clean_extra_whitespace],
+            chunking_strategy="by_title",
+        )
+        loaded_docs.extend(loader.load())
 
     context.add_output_metadata(
         {
-            "document_count": MetadataValue.int(len(docs)),
-            "document_length": MetadataValue.int(len(docs[0].page_content)),
-            "sample": MetadataValue.md(docs[0].page_content),
+            "file_count": MetadataValue.int(len(raw_docs)),
+            "document_count": MetadataValue.int(len(loaded_docs)),
+            "document_length": 0
+            if len(loaded_docs) == 0
+            else MetadataValue.int(len(loaded_docs[0].page_content)),
+            "sample": None
+            if len(loaded_docs) == 0
+            else MetadataValue.md(loaded_docs[0].page_content),
         }
     )
-    return docs
+    return loaded_docs
 
 
-@dg.asset(kinds={"ollama", "chromadb"})
+@dg.asset(kinds={"ollama", "chromadb"}, partitions_def=subdirectory_partitions)
 def pdf__vector_store(
     context: dg.AssetExecutionContext,
     chroma_client: dg.ResourceParam[ChromaHttpClient],
     pdf__parsed_documents: list[Document],
     pdf__embedding_model: str,
 ):
-    collection_name = "pdf_rag"
+    if len(pdf__parsed_documents) == 0:
+        return
+
+    collection_name = context.partition_key
     Chroma.from_documents(
         documents=filter_complex_metadata(pdf__parsed_documents),
         client=chroma_client,

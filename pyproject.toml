@@ -25,8 +25,8 @@ langchain-ollama = "^0.2.1"
 langchain-community = "^0.3.9"
 langchain-chroma = "^0.1.4"
 tiktoken = "^0.8.0"
-dagster = "^1.9.9"
-dagster-postgres = "^0.25.9"
+dagster = "^1.9"
+dagster-postgres = "^0.25"
 chromadb-client = "^0.6.3"
 unstructured = { extras = ["md", "pdf"], version = "^0.16.9" }
 diffusers = { extras = ["torch"], version = "^0.31.0" }
@@ -35,13 +35,17 @@ langsmith = "^0.1.147"
 pypdf = "^5.1.0"
 pymupdf = "^1.24.14"
 langchain-unstructured = "^0.1.6"
+colorama = "^0.4.6"
+
+[tool.poetry.group.dev]
+optional = true
 
 [tool.poetry.group.dev.dependencies]
 ruff = "^0.7.0"
 ipython = "^8.28.0"
 jupyter = "^1.1.1"
 notebook = "^7.2.2"
-dagster-webserver = "^1.9.9"
+dagster-webserver = "^1.9"
 
 [build-system]
 requires = ["poetry-core"]

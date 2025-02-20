@@ -35,16 +35,16 @@ services:
     restart: unless-stopped
     init: true
     command: >
-      poetry install --with dev &&
+      poetry install --sync --with dev &&
       exec poetry run dagster dev -h 0.0.0.0 -p 3030
     env_file: .env
     environment:
       CHROMA_HOST: chromadb
       OLLAMA_URL: http://ollama:11434
     volumes:
-      - .:/app
-      - ./dagster.yaml:/opt/dagster/dagster.yaml
-      - ${HOME}/Documents/Obsidian/Obsidian:/opt/obsidian
+      - ./:/app
+      - ./dagster.yaml:/opt/dagster/dagster.yaml:ro
+      - ./workspace.yaml:/opt/dagster/workspace.yaml:ro
       - dagster-venv-data:/app/.venv
     ports:
       - '3030:3030'
